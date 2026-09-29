@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniTool Studio | Secure Document & Creative Engine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PDF-Lib for Client-Side PDF Operations -->
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#0B0C10',
+            brandCard: '#1F2833',
+            brandCyan: '#66FCF1',
+            brandCyanHover: '#45A29E',
+            brandMuted: '#C5C6C7'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-brandDark text-brandMuted min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="border-b border-gray-800 bg-[#12141a] px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center space-x-2">
+      <span class="text-2xl font-bold tracking-wider text-white">OMNI<span class="text-brandCyan">TOOL</span></span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <div class="bg-brandCard px-4 py-1.5 rounded-full border border-gray-700 text-xs font-medium text-white flex items-center gap-2">
+        <span>Daily Credits:</span>
+        <span id="credit-count" class="text-brandCyan font-bold text-sm">5</span>
+      </div>
+      <button class="bg-brandCyan text-black font-semibold text-xs px-4 py-2 rounded hover:bg-brandCyanHover transition">Go Pro</button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-10 flex flex-col items-center">
+    <div class="text-center max-w-2xl mb-10">
+      <span class="text-brandCyan text-xs tracking-widest font-semibold uppercase bg-brandCyan/10 px-3 py-1 rounded-full border border-brandCyan/20">Client-Side Engine</span>
+      <h1 class="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-3 tracking-tight">Zero Uploads. Zero Waiting.</h1>
+      <p class="text-sm sm:text-base text-gray-400">Process documents and images securely on your device. Your files never touch an external server.</p>
+    </div>
+
+    <!-- Tool Selector Tabs -->
+    <div class="flex space-x-2 bg-brandCard p-1 rounded-lg border border-gray-800 mb-8">
+      <button id="tab-pdf" onclick="switchTool('pdf')" class="px-5 py-2 text-sm font-semibold rounded-md bg-brandCyan text-black transition">Merge PDFs</button>
+      <button id="tab-bg" onclick="switchTool('bg')" class="px-5 py-2 text-sm font-semibold rounded-md text-gray-300 hover:text-white transition">Image Tools</button>
+    </div>
+
+    <!-- Active Tool Container -->
+    <div class="w-full bg-[#141821] border border-gray-800 rounded-xl p-6 sm:p-10 shadow-2xl relative">
+      
+      <!-- PDF Merge Panel -->
+      <div id="panel-pdf" class="space-y-6">
+        <div class="border-2 border-dashed border-gray-700 hover:border-brandCyan/50 rounded-lg p-8 text-center transition cursor-pointer" onclick="document.getElementById('pdf-files').click()">
+          <input type="file" id="pdf-files" accept="application/pdf" multiple class="hidden" onchange="handlePdfSelect(event)" />
+          <div class="text-brandCyan mb-2">
+            <svg class="w-10 h-10 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          </div>
+          <p class="text-white font-medium text-sm">Click or Drag PDF files here to merge</p>
+          <p class="text-xs text-gray-500 mt-1">Select 2 or more files</p>
+        </div>
+        <div id="pdf-file-list" class="text-xs space-y-1 text-gray-400"></div>
+        <button id="merge-btn" onclick="executePdfMerge()" class="w-full bg-brandCyan text-black font-bold py-3 rounded-md hover:bg-brandCyanHover transition duration-200 disabled:opacity-40">Merge & Download PDF</button>
+      </div>
+
+      <!-- Image Tool Panel -->
+      <div id="panel-bg" class="space-y-6 hidden">
+        <div class="border-2 border-dashed border-gray-700 hover:border-brandCyan/50 rounded-lg p-8 text-center transition cursor-pointer" onclick="document.getElementById('img-file').click()">
+          <input type="file" id="img-file" accept="image/*" class="hidden" onchange="handleImageSelect(event)" />
+          <div class="text-brandCyan mb-2">
+            <svg class="w-10 h-10 mx-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <p class="text-white font-medium text-sm">Select Image to Process</p>
+          <p class="text-xs text-gray-500 mt-1">PNG, JPG, or WebP</p>
+        </div>
+        <canvas id="img-canvas" class="max-w-full mx-auto hidden rounded-md border border-gray-700"></canvas>
+        <button id="convert-btn" onclick="executeImageAction()" class="w-full bg-brandCyan text-black font-bold py-3 rounded-md hover:bg-brandCyanHover transition duration-200 disabled:opacity-40">Export Optimized PNG</button>
+      </div>
+
+    </div>
+
+    <!-- AdSense Safe Area (Directly Below Tool Actions) -->
+    <div class="w-full mt-8 p-4 border border-dashed border-gray-800 rounded bg-[#0e1117] text-center text-xs text-gray-600">
+      <!-- Paste Google AdSense Display Unit Script Here -->
+      Advertisement Space
+    </div>
+  </main>
+
+  <!-- Legal Footer -->
+  <footer class="border-t border-gray-800 bg-[#0e1117] py-6 text-center text-xs text-gray-500 mt-auto">
+    <div class="flex justify-center space-x-6 mb-2">
+      <a href="privacy.html" class="hover:text-[#66FCF1] transition">Privacy Policy</a>
+      <a href="terms.html" class="hover:text-[#66FCF1] transition">Terms of Service</a>
+      <a href="contact.html" class="hover:text-[#66FCF1] transition">Contact Us</a>
+    </div>
+    <p>&copy; 2026 OmniTool. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Credit System Configuration
+    const DAILY_LIMIT = 5;
+    function getCredits() {
+      const today = new Date().toDateString();
+      const savedDate = localStorage.getItem('omni_credit_date');
+      if (savedDate !== today) {
+        localStorage.setItem('omni_credit_date', today);
+        localStorage.setItem('omni_credits', DAILY_LIMIT);
+        return DAILY_LIMIT;
+      }
+      return parseInt(localStorage.getItem('omni_credits')) || 0;
+    }
+
+    function useCredit() {
+      let credits = getCredits();
+      if (credits <= 0) {
+        alert("You have reached your free daily limit. Upgrade to Pro for unlimited actions.");
+        return false;
+      }
+      credits--;
+      localStorage.setItem('omni_credits', credits);
+      document.getElementById('credit-count').innerText = credits;
+      return true;
+    }
+
+    document.getElementById('credit-count').innerText = getCredits();
+
+    // Tab Switching
+    function switchTool(tool) {
+      const isPdf = tool === 'pdf';
+      document.getElementById('panel-pdf').classList.toggle('hidden', !isPdf);
+      document.getElementById('panel-bg').classList.toggle('hidden', isPdf);
+      document.getElementById('tab-pdf').className = isPdf ? 'px-5 py-2 text-sm font-semibold rounded-md bg-brandCyan text-black transition' : 'px-5 py-2 text-sm font-semibold rounded-md text-gray-300 hover:text-white transition';
+      document.getElementById('tab-bg').className = !isPdf ? 'px-5 py-2 text-sm font-semibold rounded-md bg-brandCyan text-black transition' : 'px-5 py-2 text-sm font-semibold rounded-md text-gray-300 hover:text-white transition';
+    }
+
+    // PDF Merge Execution (Client-Side)
+    let selectedPdfFiles = [];
+    function handlePdfSelect(e) {
+      selectedPdfFiles = Array.from(e.target.files);
+      const listDiv = document.getElementById('pdf-file-list');
+      listDiv.innerHTML = selectedPdfFiles.map(f => `• ${f.name} (${(f.size/1024).toFixed(1)} KB)`).join('<br>');
+    }
+
+    async function executePdfMerge() {
+      if (selectedPdfFiles.length < 2) return alert("Select at least 2 PDF files to merge.");
+      if (!useCredit()) return;
+
+      const mergedPdf = await PDFLib.PDFDocument.create();
+      for (const file of selectedPdfFiles) {
+        const fileBytes = await file.arrayBuffer();
+        const pdf = await PDFLib.PDFDocument.load(fileBytes);
+        const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+        copiedPages.forEach((page) => mergedPdf.addPage(page));
+      }
+      const pdfBytes = await mergedPdf.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "merged-document.pdf";
+      link.click();
+    }
+
+    // Image Processing Tool Execution
+    let activeImage = null;
+    function handleImageSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          activeImage = img;
+          const canvas = document.getElementById('img-canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          canvas.classList.remove('hidden');
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function executeImageAction() {
+      if (!activeImage) return alert("Please select an image first.");
+      if (!useCredit()) return;
+      const canvas = document.getElementById('img-canvas');
+      const link = document.createElement('a');
+      link.download = 'optimized-image.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
